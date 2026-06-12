@@ -1,7 +1,5 @@
--- 데이터베이스 생성
 CREATE DATABASE store_db;
 
--- 사용할 데이터베이스 선택
 USE store_db;
 
 -- ==========================
