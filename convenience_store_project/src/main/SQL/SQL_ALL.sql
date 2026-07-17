@@ -78,9 +78,42 @@ CREATE TABLE product (
     product_img VARCHAR(255),                  -- 상품 이미지 경로
     sub_no INT,                                -- 소분류 번호(FK)
     product_price INT,                         -- 판매 가격
-    stock_qty INT DEFAULT 0,                   -- 현재 재고 수량
 
     FOREIGN KEY (sub_no) REFERENCES sub_category(sub_no)
+);
+
+-- ==========================
+-- 이벤트 정보 테이블
+-- ==========================
+CREATE TABLE product_event (
+    event_no INT AUTO_INCREMENT PRIMARY KEY, -- 이벤트 번호(PK)
+    product_no INT NOT NULL,                 -- 상품번호(FK)
+    event_type VARCHAR(50),                  -- 이벤트 종류(1+1, 2+1, 할인 등)
+    event_count INT,                         -- 행사 적용 수량
+    event_price INT,                         -- 행사 적용 가격
+    start_date DATE,                         -- 행사 시작일
+    end_date DATE,                           -- 행사 종료일
+
+    FOREIGN KEY(product_no)
+    REFERENCES product(product_no)
+   
+);
+-- ==========================
+-- 매장별 재고 테이블
+-- ==========================
+CREATE TABLE inventory (
+    inventory_no INT PRIMARY KEY AUTO_INCREMENT, -- 재고번호(PK)
+    store_no INT NOT NULL,                       -- 매장번호(FK)
+    product_no INT NOT NULL,                     -- 상품번호(FK)
+    stock_qty INT DEFAULT 0,                     -- 해당 매장의 상품 재고 수량
+    last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,             -- 재고 수정일시
+
+    FOREIGN KEY (store_no) REFERENCES store(store_no),
+    FOREIGN KEY (product_no) REFERENCES product(product_no),
+
+    UNIQUE (store_no, product_no)                -- 동일 매장의 동일 상품 중복 방지
+
 );
 
 -- ==========================
@@ -122,7 +155,7 @@ CREATE TABLE order_history (
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 발주일시
     product_no INT,                          -- 상품번호(FK)
     qty INT,                                 -- 발주수량
-    result VARCHAR(100),                     -- 처리결과(대기/승인/완료 등)
+    result VARCHAR(20),                     -- 처리결과(대기/승인/완료 등)
     store_no INT,                            -- 발주 매장(FK)
 
     FOREIGN KEY (product_no) REFERENCES product(product_no),
