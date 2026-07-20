@@ -1,86 +1,91 @@
 DROP DATABASE IF EXISTS jsp_project;
+
 CREATE DATABASE jsp_project;
+
 USE jsp_project;
 
 -- ==========================
--- 1. 관리자 정보 테이블
+-- 관리자 정보 테이블
 -- ==========================
 CREATE TABLE manager (
-    manager_id VARCHAR(50) PRIMARY KEY,      
-    pw VARCHAR(100) NOT NULL,                
-    join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-    department VARCHAR(100),                
-    position VARCHAR(100)                   
+    manager_id VARCHAR(50) PRIMARY KEY,      -- 관리자 아이디(PK)
+    pw VARCHAR(100) NOT NULL,                -- 비밀번호
+    join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 가입일
+    department VARCHAR(100),                -- 부서
+    position VARCHAR(100)                   -- 직급
 );
 
 -- ==========================
--- 2. 매장 정보 테이블
--- ==========================
-CREATE TABLE store (
-    store_no INT PRIMARY KEY AUTO_INCREMENT, 
-    store_name VARCHAR(50) NOT NULL,         
-    address VARCHAR(255),                    
-    owner_name VARCHAR(30),                  
-    business_no VARCHAR(100),                
-    phone VARCHAR(30),                       
-    reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-    manager_id VARCHAR(50),                  
-    owner_id VARCHAR(50),                    
-
-    FOREIGN KEY (manager_id) REFERENCES manager(manager_id)
-);
-
--- ==========================
--- 3. 점주 정보 테이블
+-- 점주 정보 테이블
 -- ==========================
 CREATE TABLE owner (
-    owner_id VARCHAR(50) PRIMARY KEY,       
-    pw VARCHAR(100) NOT NULL,               
-    join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-    name VARCHAR(30),                       
-    phone VARCHAR(30),                      
-    store_no INT,                            
-    
-    FOREIGN KEY (store_no) REFERENCES store(store_no)
+    owner_id VARCHAR(50) PRIMARY KEY,       -- 점주 아이디(PK)
+    pw VARCHAR(100) NOT NULL,               -- 비밀번호
+    join_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 가입일
+    name VARCHAR(30),                       -- 이름
+    phone VARCHAR(30),                      -- 연락처
+    store_no INT                            -- 관리 매장 번호(FK)
 );
 
--- 매장과 점주 외래키 상호 연결 제약조건 추가
-ALTER TABLE store ADD CONSTRAINT fk_store_owner FOREIGN KEY (owner_id) REFERENCES owner(owner_id);
+-- ==========================
+-- 매장 정보 테이블
+-- ==========================
+CREATE TABLE store (
+    store_no INT PRIMARY KEY AUTO_INCREMENT, -- 매장 번호(PK)
+    store_name VARCHAR(50) NOT NULL,         -- 매장명
+    address VARCHAR(255),                    -- 주소
+    owner_name VARCHAR(30),                  -- 점주명
+    business_no VARCHAR(100),                -- 사업자등록번호
+    phone VARCHAR(30),                       -- 연락처
+    reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 등록일
+    manager_id VARCHAR(50),                  -- 관리자 아이디(FK)
+    owner_id VARCHAR(50),                    -- 점주 아이디(FK)
+
+    FOREIGN KEY (manager_id) REFERENCES manager(manager_id),
+    FOREIGN KEY (owner_id) REFERENCES owner(owner_id)
+);
+
+-- 점주가 관리하는 매장 연결
+ALTER TABLE owner
+ADD CONSTRAINT fk_owner_store
+FOREIGN KEY (store_no) REFERENCES store(store_no);
 
 -- ==========================
--- 4. 대분류 테이블
+-- 대분류 테이블
+-- 예) 냉장, 냉동, 일반상품
 -- ==========================
 CREATE TABLE main_category (
-    main_no INT PRIMARY KEY AUTO_INCREMENT, 
-    main_name VARCHAR(255) NOT NULL         
+    main_no INT PRIMARY KEY AUTO_INCREMENT, -- 대분류 번호(PK)
+    main_name VARCHAR(255) NOT NULL         -- 대분류명
 );
 
 -- ==========================
--- 5. 소분류 테이블
+-- 소분류 테이블
+-- 예) 우유, 아이스크림, 과자
 -- ==========================
 CREATE TABLE sub_category (
-    sub_no INT PRIMARY KEY AUTO_INCREMENT, 
-    sub_name VARCHAR(255) NOT NULL,        
-    main_no INT,                           
+    sub_no INT PRIMARY KEY AUTO_INCREMENT, -- 소분류 번호(PK)
+    sub_name VARCHAR(255) NOT NULL,        -- 소분류명
+    main_no INT,                           -- 대분류 번호(FK)
 
     FOREIGN KEY (main_no) REFERENCES main_category(main_no)
 );
 
 -- ==========================
--- 6. 상품 정보 테이블
+-- 상품 정보 테이블
 -- ==========================
 CREATE TABLE product (
-    product_no INT PRIMARY KEY AUTO_INCREMENT, 
-    product_name VARCHAR(255) NOT NULL,        
-    product_img VARCHAR(255),                  
-    sub_no INT,                                
-    product_price INT,                         
+    product_no INT PRIMARY KEY AUTO_INCREMENT, -- 상품번호(PK)
+    product_name VARCHAR(255) NOT NULL,        -- 상품명
+    product_img VARCHAR(255),                  -- 상품 이미지 경로
+    sub_no INT,                                -- 소분류 번호(FK)
+    product_price INT,                         -- 판매 가격
 
     FOREIGN KEY (sub_no) REFERENCES sub_category(sub_no)
 );
 
 -- ==========================
--- 7. 이벤트 정보 테이블
+-- 이벤트 정보 테이블
 -- ==========================
 CREATE TABLE product_event (
     event_no INT AUTO_INCREMENT PRIMARY KEY,
@@ -91,114 +96,89 @@ CREATE TABLE product_event (
     start_date DATE,
     end_date DATE,
 
-    FOREIGN KEY(product_no) REFERENCES product(product_no)
+    FOREIGN KEY(product_no)
+    REFERENCES product(product_no)
 );
-
 -- ==========================
--- 8. 매장별 재고 테이블
+-- 매장별 재고 테이블
 -- ==========================
 CREATE TABLE inventory (
-    inventory_no INT PRIMARY KEY AUTO_INCREMENT, 
-    store_no INT NOT NULL,                       
-    product_no INT NOT NULL,                     
-    stock_qty INT DEFAULT 0,                     
-    last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,             
+    inventory_no INT PRIMARY KEY AUTO_INCREMENT, -- 재고번호(PK)
+    store_no INT NOT NULL,                       -- 매장번호(FK)
+    product_no INT NOT NULL,                     -- 상품번호(FK)
+    stock_qty INT DEFAULT 0,                     -- 해당 매장의 상품 재고 수량
+    last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,             -- 재고 수정일시
 
     FOREIGN KEY (store_no) REFERENCES store(store_no),
     FOREIGN KEY (product_no) REFERENCES product(product_no),
-    UNIQUE (store_no, product_no)                
+
+    UNIQUE (store_no, product_no)                -- 한 매장에 같은 상품은 한 번만 등록
 );
 
 -- ==========================
--- 9. 판매 내역 테이블
+-- 판매 내역 테이블
 -- ==========================
 CREATE TABLE sales (
-    sales_no INT PRIMARY KEY AUTO_INCREMENT, 
-    product_no INT,                          
-    qty INT,                                 
-    sales_price INT,                         
-    store_no INT,                            
-    sales_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    sales_no INT PRIMARY KEY AUTO_INCREMENT, -- 판매번호(PK)
+    product_no INT,                          -- 상품번호(FK)
+    qty INT,                                 -- 판매수량
+    sales_price INT,                         -- 판매금액
+    store_no INT,                            -- 판매 매장(FK)
+    sales_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 판매일시
 
     FOREIGN KEY (product_no) REFERENCES product(product_no),
     FOREIGN KEY (store_no) REFERENCES store(store_no)
 );
 
 -- ==========================
--- 10. 발주 내역 테이블 (순서를 purchase 위로 이동!)
--- ==========================
-CREATE TABLE order_history (
-    order_no INT PRIMARY KEY AUTO_INCREMENT, 
-    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-    product_no INT,                          
-    qty INT,                                 
-    result VARCHAR(20),                     
-    store_no INT,                            
-
-    FOREIGN KEY (product_no) REFERENCES product(product_no),
-    FOREIGN KEY (store_no) REFERENCES store(store_no)
-);
-
--- ==========================
--- 11. 입고 내역 테이블 (콤마 추가 및 참조 무결성 오류 해결)
+-- 입고 내역 테이블
 -- ==========================
 CREATE TABLE purchase (
-    purchase_no INT PRIMARY KEY AUTO_INCREMENT, 
-    product_no INT,                             
-    qty INT,                                    
-    purchase_price INT,                         
-    store_no INT,                               
-    purchase_date DATE,                         
-    purchase_time TIME,                         
-    order_no INT,                               
-        
+    purchase_no INT PRIMARY KEY AUTO_INCREMENT, -- 입고번호(PK)
+    product_no INT,                             -- 상품번호(FK)
+    qty INT,                                    -- 입고수량
+    purchase_price INT,                         -- 입고금액
+    store_no INT,                               -- 입고 매장(FK)
+    purchase_date DATE,                         -- 입고일
+    purchase_time TIME,                         -- 입고시간
+
     FOREIGN KEY (product_no) REFERENCES product(product_no),
-    FOREIGN KEY (store_no) REFERENCES store(store_no), -- 콤마 추가 완료
-    FOREIGN KEY (order_no) REFERENCES order_history(order_no)
+    FOREIGN KEY (store_no) REFERENCES store(store_no)
 );
 
+-- ==========================
+-- 발주 내역 테이블
+-- ==========================
+CREATE TABLE order_history (
+    order_no INT PRIMARY KEY AUTO_INCREMENT, -- 발주번호(PK)
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 발주일시
+    product_no INT,                          -- 상품번호(FK)
+    qty INT,                                 -- 발주수량
+    result VARCHAR(20),                     -- 처리결과(대기/승인/완료 등)
+    store_no INT,                            -- 발주 매장(FK)
 
--- ========================================================
--- 마스터 데이터 및 초기 샘플 데이터 인서트 구역
--- ========================================================
+    FOREIGN KEY (product_no) REFERENCES product(product_no),
+    FOREIGN KEY (store_no) REFERENCES store(store_no)
+);
 
--- 대분류 기본 세팅
+-- 기존 데이터 삭제
+DELETE FROM sub_category;
+DELETE FROM main_category;
+
+-- 1. 대분류 데이터 입력 (2개)
 INSERT INTO main_category (main_name) VALUES ('냉장'), ('일반');
 
--- 소분류 매핑 데이터 세팅
+-- 2. 소분류 데이터 입력
+-- 냉장(1): 삼각김밥, 김밥, 햄버거, 족발/편육, 우유, 요거트, 치즈, 아이스크림, 얼음, 만두, 냉동피자
 INSERT INTO sub_category (sub_name, main_no) VALUES 
 ('삼각김밥', 1), ('김밥', 1), ('햄버거', 1), ('족발/편육', 1), 
 ('우유', 1), ('요거트', 1), ('치즈', 1), ('아이스크림', 1), 
 ('얼음', 1), ('만두', 1), ('냉동피자', 1);
 
+-- 일반(2): 과자, 음료, 주류, 일회용품, 화장품, 세제
 INSERT INTO sub_category (sub_name, main_no) VALUES 
 ('과자', 2), ('음료', 2), ('주류', 2), ('일회용품', 2), ('화장품', 2), ('세제', 2);
 
--- 상품 기본 데이터 구성 (소분류 인덱스 번호 100% 매칭 완료)
-INSERT INTO product (product_name, sub_no, product_price) VALUES 
-('참치마요 삼각김밥', 1, 1200),  -- sub_no 1: 삼각김밥
-('서울우유 500ml', 5, 1800),     -- sub_no 5: 우유
-('포카칩 오리지널', 12, 1500);    -- sub_no 12: 과자
-
--- 관리자, 초기 가맹점 및 점주 원천 데이터 동기화
-INSERT INTO manager (manager_id, pw, department, position) VALUES ('admin', '1234', '물류부', '팀장');
-
-INSERT INTO store (store_name, address, owner_name, business_no) VALUES 
-('강남역점', '서울시 강남구 역삼동 123', '김점주', '111-22-33333'),
-('홍대입구점', '서울시 마포구 동교동 456', '이점주', '444-55-66666'),
-('부산서면점', '부산시 부산진구 부전동 789', '박점주', '777-88-99999');
-
-INSERT INTO owner (owner_id, pw, name, phone, store_no) VALUES 
-('owner01', '1234', '김점주', '010-1111-2222', 1),
-('owner02', '1234', '이점주', '010-3333-4444', 2),
-('owner03', '1234', '박점주', '010-5555-6666', 3);
-
-UPDATE store SET owner_id = 'owner01' WHERE store_no = 1;
-UPDATE store SET owner_id = 'owner02' WHERE store_no = 2;
-UPDATE store SET owner_id = 'owner03' WHERE store_no = 3;
-
--- 초기 데모용 발주 히스토리 적재
-INSERT INTO order_history (product_no, qty, result, store_no) VALUES 
-(1, 50, '승인', 1),  
-(2, 20, '대기', 1),  
-(3, 30, '승인', 1);
+INSERT INTO manager (manager_id, pw)
+VALUES ('admin', '1234');
