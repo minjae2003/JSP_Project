@@ -24,7 +24,13 @@
 <title>가맹점 POS 시스템 - 판매 등록</title>
 <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:"맑은 고딕"; }
-    body { background: #f1f2f6; padding: 20px; }
+    body { background: #f1f2f6; }
+    .top{ height:70px; background:#2c3e50; display:flex; justify-content:space-between; align-items:center; padding:0 30px; }
+	.menu button{ width:140px; height:40px; border:none; border-radius:5px; margin-right:8px; cursor:pointer; }
+	.logout button{ width:100px; height:40px; border:none; border-radius:5px; cursor:pointer; background:#e74c3c; color:white; }
+	.content{ padding:40px; }
+	.title{ font-size:28px; font-weight:bold; color:#2c3e50; margin-bottom:20px; }
+	
     .pos-container { max-width: 650px; margin: 50px auto; background: white; padding: 35px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-top: 6px solid #3498db; }
     .pos-title { font-size: 26px; font-weight: bold; color: #2c3e50; margin-bottom: 30px; text-align: center; display: flex; justify-content: center; align-items: center; gap: 10px; }
     
@@ -47,11 +53,19 @@
     .btn-submit:hover { background: #2980b9; }
     .btn-cancel { background: #95a5a6; color: white; }
     .btn-cancel:hover { background: #7f8c8d; }
-</style>
+	</style>
 </head>
 <body>
 
-<div class="pos-container">
+	<div class="top">
+    	<div class="menu">
+        	<button onclick="location.href='OwnerMain.jsp'">메인으로</button>
+    	</div>
+    <div class="logout">
+        <button onclick="location.href='logout.jsp'">로그아웃</button>
+    </div>
+	</div>
+	<div class="pos-container">
     <div class="pos-title">🖥️ 실시간 가맹점 POS 판매 단말기</div>
 
     <form action="salesPro.jsp" method="post" onsubmit="return validatePOS()">

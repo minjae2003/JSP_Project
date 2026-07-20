@@ -29,7 +29,7 @@
 <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:"맑은 고딕"; }
     body { background: #f8f9fa; min-width:1200px;}
-    .top { height:100%;white-space:nowrap;height:50px; background:#2c3e50; display:flex; justify-content:space-between; align-items:center; padding:0 30px; }
+    .top { height:100%;white-space:nowrap;height:70px; background:#2c3e50; display:flex; justify-content:space-between; align-items:center; padding:0 30px; }
     .menu button { width:30%; min-width:140px; height:40px; border:none; border-radius:5px; margin-right:8px; cursor:pointer; background:#ecf0f1; font-weight:bold; }
     .logout button {width:10%; min-width:100px; height:40px; border:none; border-radius:5px; cursor:pointer; background:#e74c3c; color:white; font-weight:bold; }
     .content { padding:40px; max-width: 1300px; margin: 0 auto; }
